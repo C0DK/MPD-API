@@ -1,7 +1,9 @@
 # MPD-API
-I made a API for MPD that automaticly downloads songs from youtube and plays on demand with an easy to use API which can easily be connected to an HTTP server. 
+I made a API for MPD that automaticly downloads songs from youtube and plays on demand with an easy to use API which can easily be connected to an HTTP server.
 
-Requires:
+## Work in progress 
+
+## Requires:
 An Youtube/Google API v3 key (for the search functionality)
   Get it:
     https://cloud.google.com/console > APIs & auth > Registered apps
@@ -19,15 +21,15 @@ pytube
   Source:
     https://github.com/nficano/pytube
 
-Notes:
+## Notes:
 
 This only works with an MPD server running on localhost:6600
 
-How To:
+## How To:
 
 Use by calling DoAPI(URI,data)
 
-Example:
+## Example:
 
 DoAPI("DOWNLOAD/CONVERT/ADD/PLAY",
 	{
