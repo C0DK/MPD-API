@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from pytube import YouTube
+import pprint
 import sys
 import os, shutil
 from mpd import MPDClient
 #from subprocess import call
 
 
-def Download(songURI):
+def Download(songURI, bestQuality = False):
 	filetype = "mp4"
 	#Check if NAS is mounted
 	nasDir = '/home/pi/music/yt/'
@@ -35,7 +36,12 @@ def Download(songURI):
 		yt = YouTube(songURL)
 	except:
 		print "ERROR: URL is not a video!"
-	video = yt.filter(filetype)[0]
+	
+	
+	if bestQuality:
+		video = yt.filter(filetype)[-1]
+	else :
+		video = yt.filter(filetype)[0]
 	print "starting download to '" + dirUse + "'";
 	
 	try:

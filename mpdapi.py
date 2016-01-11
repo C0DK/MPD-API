@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import ytsearch, ytdownload, convertfiles
+import ytsearch, ytdownload, convertfiles, sqlite3
 from mpd import MPDClient
 
 def GetCurrentURI(URI):
@@ -37,7 +37,6 @@ def DoAction(URI, data):
 		while len(data["song_names"]) != 0:
 			song = data["song_names"].pop()
 			client = GetMPD()
-			#print "song = "+ song
 			client.add("yt/"+song)
 			state = client.status()["state"]
 			if(state == "pause"):
@@ -47,16 +46,37 @@ def DoAction(URI, data):
 			client.disconnect()
 			
 	if(URI == "PLAY"):
-		client = GetMPD()	
+		client = GetMPD()
+		state = client.status()["state"]
 		if(state == "pause"):
 			client.pause(0)
 		elif(state == "stop"):
 			client.play()
+		elif(state == "play"):
+			client.pause(1);
+		client.disconnect()
+		
+	if(URI == "STATS"):
+		conn = sqlite3.connect('/home/pi/scripts/mpd/example2.db')
+		c = conn.cursor()
+		songs = c.execute("SELECT * FROM songPlays ORDER BY times DESC")
+		data["stats"] = [];	
+		for song in songs:
+			data["stats"].append({"song":str(song[0]),"times":str(song[1])})
+		
+	if(URI == "STOP"):
+		client = GetMPD()	
+		client.stop()
+		client.disconnect()
+		
+	if(URI == "NEXT"):
+		client = GetMPD()	
+		client.next()
 		client.disconnect()
 	
 	if(URI == "SEARCH"):
 		data["yt_elements"] = ytsearch.youtube_search(data["query"],5)
-		return data
+		#return data
 		
 	
 	if(URI == "PLAYLAST"):
@@ -64,6 +84,15 @@ def DoAction(URI, data):
 		queue = client.status()
 		client.play(int(queue["playlistlength"])-1)
 		client.disconnect()
+		
+	if(URI == "STATUS"):
+		client = GetMPD()
+		data["status"] = client.status()
+		
+	if(URI == "GETQUEUE"):
+		client = GetMPD()
+		data["queue"] = client.playlistinfo()
+		
 		
 	return data
 	
@@ -75,45 +104,10 @@ def DoActionTrain(URI,data):
 		
 	return data
 
-
-def DoAPI(URI, data):
-	#only works with single songs
-	if URI.startswith("GET"):
-		print "input "+data["url"]
-		#commands = ["sudo","python","/home/pi/scripts/dl-yt"]
-		#commands.extend(data["url"].split(" "))
-		#Popen(commands)
-		result = ytdownload.Download(data["url"])
-		
-		if URI.startswith("GET/ADD"):
-			client = GetMPD()
-			print " "
-			#print client.currentsong()
-			client.add("yt/"+result)
-			
-		
-		if URI.startswith("GET/PLAY"):
-			client = GetMPD()
-			print " "
-			#print client.currentsong()
-			client.add("yt/"+result)
-			queue = client.status()
-			#print len(queue)
-			client.play(int(queue["playlistlength"])-1)
-			client.disconnect()
-			
-		return {"result":"sucess","songName":result}
-	if(URI.startswith("SEARCH")):
-		result = ytsearch.youtube_search(data["query"],5)
-		return {"result":"success_result","search":result}	
-		
-	return {"result":"no func found"}	
-
 if __name__ == "__main__":
-	returned = DoAPI("SEARCH",
+	returned = DoActionTrain("GETQUEUE",
 	{
-	#"url":"https://www.youtube.com/watch?v=8Uee_mcxvrw"
-	"query":"kendrick lamar"
+		"query":"kendrick lamar"
 	})
 	print returned
 		

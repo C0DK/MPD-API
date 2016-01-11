@@ -17,8 +17,8 @@ def DoConvert():
 			mp4s.append(obj)
 			
 	for file in mp4s:
-		print "	converting '"+filename+"'";
 		filename = file.split(".")[0]
+		print "	converting '"+filename+"'";
 		newFile = dirToMusic+"/"+filename+".mp3"
 		oldFile = dirToMusic+"/"+file
 		call(["ffmpeg","-i",oldFile,newFile], stdout=open(os.devnull, 'wb'))
