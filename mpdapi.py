@@ -1,6 +1,7 @@
 #!/usr/bin/python
-import ytsearch, ytdownload, convertfiles, sqlite3
+import ytsearch, ytdownload, convertfiles, sqlite3, Database
 from mpd import MPDClient
+from MPDHelper import GetMPD
 
 def GetCurrentURI(URI):
 	return URI.split("/")[0]
@@ -10,10 +11,10 @@ def CutURI(URI):
 	lngth = len(first)
 	return URI[lngth+1:]
 	
-def GetMPD():
-	client = MPDClient()           # create client object
-	client.connect("localhost", 6600)  # connect to localhost:6600
-	return client
+#def GetMPD():
+#	client = MPDClient()           # create client object
+#	client.connect("localhost", 6600)  # connect to localhost:6600
+#	return client
 
 def doRepeat(func, data, dataDenominator):
 	for obj in data[dataDenominator]:
@@ -57,7 +58,7 @@ def DoAction(URI, data):
 		client.disconnect()
 		
 	if(URI == "STATS"):
-		conn = sqlite3.connect('/home/pi/scripts/mpd/example2.db')
+		conn = Database.GetConnection()
 		c = conn.cursor()
 		songs = c.execute("SELECT * FROM songPlays ORDER BY times DESC")
 		data["stats"] = [];	
@@ -93,7 +94,12 @@ def DoAction(URI, data):
 		client = GetMPD()
 		data["queue"] = client.playlistinfo()
 		
-		
+	if(URI == "LS"):
+		client = GetMPD()
+		lsLookup = client.lsinfo(data["LS-dir"])
+		data["LS-dir"] = ""
+		data["LS-result"] = lsLookup
+			
 	return data
 	
 def DoActionTrain(URI,data):
