@@ -1,16 +1,24 @@
 #!/usr/bin/python
 from mpd import MPDClient
-import time, sqlite3, Database,Logger,MPDQueueFixer
+import time, sqlite3, Database,Logger,MPDQueueFixer, CheckButton
 
 def Repeater():
 
 	logObj = Logger.LoggerClass()
+	buttBot = CheckButton.ButtonBot()
 	
 	while(True):
-		print "Instance"
-		logObj.AddLog()
-		MPDQueueFixer.Fix()
-		time.sleep(1)
+		try:
+			print "Instance"
+			logObj.AddLog()
+			buttBot.Check()
+			MPDQueueFixer.Fix()
+			time.sleep(1)
+		except KeyboardInterrupt:
+			print "was exited by user!"
+			return
+		except:
+			print "error happened in loop"
 		
 		
 		

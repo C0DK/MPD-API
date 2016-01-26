@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from pytube import YouTube
-import pprint
-import sys
-import os, shutil
+import pprint, sys, os, shutil, time
 from mpd import MPDClient
-#from subprocess import call
+from subprocess import call
 
 
 def Download(songURI, bestQuality = False):
@@ -54,9 +52,14 @@ def Download(songURI, bestQuality = False):
 	if dirUse == nasDir:
 		client = MPDClient()           # create client object
 		client.connect("localhost", 6600)  # connect to localhost:6600
-		client.update("yt")
+		#client.update("yt/"+yt.filename + "."+filetype)
+		
+		#Hack so that it will wait for the fucking update.
+		call(["mpc", "update",("yt/"+yt.filename+"."+filetype),"-w"])
+		
 		client.disconnect()
 	
+	time.sleep(0.1);
 	
 	return yt.filename + "."+filetype
 

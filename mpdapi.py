@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import ytsearch, ytdownload, convertfiles, sqlite3, Database
+import ytsearch, ytdownload, convertfiles, sqlite3, Database, ir
 from mpd import MPDClient
 from MPDHelper import GetMPD
 
@@ -29,7 +29,7 @@ def DoAction(URI, data):
 			url = data["url"].pop()
 			if not ("song_names" in data) : 
 				data["song_names"] = []
-			data["song_names"].append(ytdownload.Download(url))
+			data["song_names"].append("yt/"+ytdownload.Download(url))
 	
 	if(URI == "CONVERT"):
 		convertfiles.DoConvert();
@@ -37,8 +37,9 @@ def DoAction(URI, data):
 	if(URI == "ADD"):
 		while len(data["song_names"]) != 0:
 			song = data["song_names"].pop()
+			print "song to play="+song
 			client = GetMPD()
-			client.add("yt/"+song)
+			client.add(song)
 			state = client.status()["state"]
 			if(state == "pause"):
 				client.pause(0)
@@ -49,6 +50,7 @@ def DoAction(URI, data):
 	if(URI == "PLAY"):
 		client = GetMPD()
 		state = client.status()["state"]
+		print "state="+state
 		if(state == "pause"):
 			client.pause(0)
 		elif(state == "stop"):
@@ -56,7 +58,12 @@ def DoAction(URI, data):
 		elif(state == "play"):
 			client.pause(1);
 		client.disconnect()
+
+	if(URI == "Ch_Pi"):
+                ir.ChPi();
+
 		
+			
 	if(URI == "STATS"):
 		conn = Database.GetConnection()
 		c = conn.cursor()
@@ -76,9 +83,13 @@ def DoAction(URI, data):
 		client.disconnect()
 	
 	if(URI == "SEARCH"):
-		data["yt_elements"] = ytsearch.youtube_search(data["query"],5)
+		data["yt_elements"] = ytsearch.youtube_search(data["query"],15)
 		#return data
 		
+	if(URI == "CLEAR"):
+		client = GetMPD()
+		client.clear()
+		client.disconnect()
 	
 	if(URI == "PLAYLAST"):
 		client = GetMPD()
@@ -89,16 +100,38 @@ def DoAction(URI, data):
 	if(URI == "STATUS"):
 		client = GetMPD()
 		data["status"] = client.status()
+		client.disconnect()
 		
 	if(URI == "GETQUEUE"):
 		client = GetMPD()
 		data["queue"] = client.playlistinfo()
+		client.disconnect()
 		
 	if(URI == "LS"):
 		client = GetMPD()
 		lsLookup = client.lsinfo(data["LS-dir"])
 		data["LS-dir"] = ""
-		data["LS-result"] = lsLookup
+		data["LSresult"] = lsLookup
+		client.disconnect()
+		
+	if(URI == "VOLUMEUP"):
+		ir.VolumeUp(5)
+		
+	if(URI == "PLAYLIST"):
+		client = GetMPD()
+		data["PLContent"] = client.listplaylist(data["PLName"])
+		
+		data["PLName"] = ""
+		
+		client.disconnect()
+		
+	if(URI == "VOLUMEDOWN"):
+		ir.VolumeDown(5);
+	if(URI == "POWER"):
+		ir.Power();
+		
+		#data["VolumeTimes"] = ""
+		#data["LS-result"] = lsLookup
 			
 	return data
 	
@@ -111,9 +144,9 @@ def DoActionTrain(URI,data):
 	return data
 
 if __name__ == "__main__":
-	returned = DoActionTrain("GETQUEUE",
+	returned = DoActionTrain("LS",
 	{
-		"query":"kendrick lamar"
+		"LS-dir":"/"
 	})
 	print returned
 		
